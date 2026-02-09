@@ -15,8 +15,7 @@ Este documento explica como funciona el programa y como operarlo en planta.
 
 ## Como ejecutar
 1. Abre una terminal.
-2. Entra a la carpeta del proyecto:
-   `C:\Users\franf\PycharmProjects\PythonProject\smartlog-azucarera`
+2. Entra a la carpeta del proyecto.
 3. Ejecuta:
    `py -u main.py`
 
