@@ -1,1 +1,2 @@
-# Proyecto simple, sin dependencias externas
+# Runtime dependencies (CLI logger)
+# This project is intentionally dependency-free at runtime.

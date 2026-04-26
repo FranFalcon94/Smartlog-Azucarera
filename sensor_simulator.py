@@ -1,8 +1,11 @@
+"""Simulated industrial sensors for SmartLog Azucarera."""
+
 import random
 from datetime import datetime
 
 
 def generate_sensor_data():
+    """Generate one simulated sensor reading (UTC timestamp)."""
     temperature = round(random.uniform(40, 110), 2)
     humidity = round(random.uniform(30, 90), 2)
 

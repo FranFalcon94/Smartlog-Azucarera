@@ -1,0 +1,2 @@
+# Developer tooling
+# API documentation can be generated with the standard library `pydoc` (no deps).

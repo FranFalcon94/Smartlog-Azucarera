@@ -1,39 +1,71 @@
-import os
+"""SQLite storage layer for SmartLog Azucarera."""
+
 import sqlite3
+from pathlib import Path
 
-DB_PATH = "data/smartlog.db"
+DB_PATH = Path(__file__).resolve().parent / "data" / "smartlog.db"
 
-def init_db():
-    os.makedirs("data", exist_ok=True)
+
+def init_db() -> None:
+    """Create the SQLite database and schema if missing."""
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS sensor_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT NOT NULL,
-            temperature REAL NOT NULL,
-            humidity REAL NOT NULL,
-            machine_status TEXT NOT NULL
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS sensor_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                temperature REAL NOT NULL,
+                humidity REAL NOT NULL,
+                machine_status TEXT NOT NULL
+            )
+            """
         )
-    """)
+        conn.commit()
+    finally:
+        conn.close()
 
-    conn.commit()
-    conn.close()
 
-def insert_data(data):
+def insert_data(data: dict) -> None:
+    """Insert one sensor reading into the database."""
     conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO sensor_logs (timestamp, temperature, humidity, machine_status)
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                data["timestamp"],
+                data["temperature"],
+                data["humidity"],
+                data["machine_status"],
+            ),
+        )
+        conn.commit()
+    finally:
+        conn.close()
 
-    cursor.execute("""
-        INSERT INTO sensor_logs (timestamp, temperature, humidity, machine_status)
-        VALUES (?, ?, ?, ?)
-    """, (
-        data["timestamp"],
-        data["temperature"],
-        data["humidity"],
-        data["machine_status"]
-    ))
 
-    conn.commit()
-    conn.close()
+def fetch_recent(limit: int = 200) -> list[dict]:
+    """Fetch the most recent logs (newest first)."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, timestamp, temperature, humidity, machine_status
+            FROM sensor_logs
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        conn.close()
